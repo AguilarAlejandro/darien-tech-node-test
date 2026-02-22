@@ -1,0 +1,39 @@
+model TelemetryAggregation {
+  id             String   @id @default(uuid())
+  espacioId      String   @map("espacio_id")
+  windowStart    DateTime @map("window_start")
+  windowEnd      DateTime @map("window_end")
+
+  // Temperature (°C)
+  tempCAvg  Float @map("temp_c_avg")
+  tempCMin  Float @map("temp_c_min")
+  tempCMax  Float @map("temp_c_max")
+
+  // Humidity (%)
+  humidityPctAvg Float @map("humidity_pct_avg")
+  humidityPctMin Float @map("humidity_pct_min")
+  humidityPctMax Float @map("humidity_pct_max")
+
+  // CO2 (ppm)
+  co2PpmAvg Int @map("co2_ppm_avg")
+  co2PpmMin Int @map("co2_ppm_min")
+  co2PpmMax Int @map("co2_ppm_max")
+
+  // Occupancy (people count)
+  occupancyAvg Float @map("occupancy_avg")
+  occupancyMin Int   @map("occupancy_min")
+  occupancyMax Int   @map("occupancy_max")
+
+  // Power (W)
+  powerWAvg Float @map("power_w_avg")
+  powerWMin Float @map("power_w_min")
+  powerWMax Float @map("power_w_max")
+
+  sampleCount Int @map("sample_count")
+
+  espacio Espacio @relation(fields: [espacioId], references: [id])
+
+  @@unique([espacioId, windowStart])
+  @@index([espacioId, windowStart])
+  @@map("telemetry_aggregations")
+}

@@ -1,0 +1,11 @@
+model DeviceDesired {
+  id                  String   @id @default(uuid())
+  espacioId           String   @unique @map("espacio_id")
+  samplingIntervalSec Int      @default(10) @map("sampling_interval_sec")
+  co2AlertThreshold   Int      @default(1000) @map("co2_alert_threshold")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  espacio Espacio @relation(fields: [espacioId], references: [id])
+
+  @@map("device_desired")
+}

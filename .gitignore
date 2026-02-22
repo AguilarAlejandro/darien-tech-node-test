@@ -137,3 +137,17 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
+
+# Coverage
+coverage/
+
+# Prisma migrations (track these, remove line below if you want to commit them)
+# prisma/migrations/
+

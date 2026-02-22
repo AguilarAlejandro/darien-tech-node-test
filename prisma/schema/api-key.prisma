@@ -1,0 +1,15 @@
+enum ApiKeyRole {
+  ADMIN
+  USER
+}
+
+model ApiKey {
+  id        String     @id @default(uuid())
+  key       String     @unique
+  role      ApiKeyRole @default(USER)
+  label     String?
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("api_keys")
+}

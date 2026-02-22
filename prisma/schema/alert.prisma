@@ -1,0 +1,21 @@
+enum AlertKind {
+  CO2
+  OCCUPANCY_MAX
+  OCCUPANCY_UNEXPECTED
+}
+
+model Alert {
+  id         String    @id @default(uuid())
+  espacioId  String    @map("espacio_id")
+  kind       AlertKind
+  startedAt  DateTime  @map("started_at")
+  resolvedAt DateTime? @map("resolved_at")
+  metaJson   Json      @map("meta_json")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  espacio Espacio @relation(fields: [espacioId], references: [id])
+
+  @@index([espacioId, kind, resolvedAt])
+  @@index([resolvedAt])
+  @@map("alerts")
+}

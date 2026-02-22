@@ -1,0 +1,14 @@
+model OfficeHours {
+  id             String   @id @default(uuid())
+  espacioId      String   @unique @map("espacio_id")
+  apertura       String   // "HH:mm" format, e.g. "09:00"
+  cierre         String   // "HH:mm" format, e.g. "18:00"
+  timezone       String   @default("America/Mexico_City")
+  diasLaborales  Int[]    @map("dias_laborales") // 1=Mon, 2=Tue...7=Sun
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  espacio Espacio @relation(fields: [espacioId], references: [id])
+
+  @@map("office_hours")
+}
