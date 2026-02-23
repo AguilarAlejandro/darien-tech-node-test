@@ -12,28 +12,28 @@ import type {
 
 let client: mqtt.MqttClient | null = null
 
-// sites/{lugarId}/offices/{espacioId}/telemetry
-// sites/{lugarId}/offices/{espacioId}/reported
+// sites/{locationId}/offices/{spaceId}/telemetry
+// sites/{locationId}/offices/{spaceId}/reported
 const TELEMETRY_TOPIC = 'sites/+/offices/+/telemetry'
 const REPORTED_TOPIC = 'sites/+/offices/+/reported'
 const DESIRED_TOPIC_PREFIX = 'sites'
 
-function extractIds(topic: string): { lugarId: string; espacioId: string } | null {
-  // sites/{lugarId}/offices/{espacioId}/{suffix}
+function extractIds(topic: string): { locationId: string; spaceId: string } | null {
+  // sites/{locationId}/offices/{spaceId}/{suffix}
   const parts = topic.split('/')
   if (parts.length < 5) return null
-  const lugarId = parts[1]
-  const espacioId = parts[3]
-  if (!lugarId || !espacioId) return null
-  return { lugarId, espacioId }
+  const locationId = parts[1]
+  const spaceId = parts[3]
+  if (!locationId || !spaceId) return null
+  return { locationId, spaceId }
 }
 
 async function enrichWithOutOfHoursFlag(
-  espacioId: string,
+  spaceId: string,
   payload: TelemetryPayload,
 ): Promise<TelemetryPayload & { outOfHours?: boolean }> {
   // Check if current time is outside office hours
-  const officeHours = await prisma.officeHours.findUnique({ where: { espacioId } })
+  const officeHours = await prisma.officeHours.findUnique({ where: { spaceId } })
   if (!officeHours) return payload
 
   const { isWithinOfficeHours } = await import('../../utils/date.utils.js')
@@ -82,7 +82,7 @@ export function startMqttSubscriber(): void {
       return
     }
 
-    const { espacioId } = ids
+    const { spaceId } = ids
     let parsed: unknown
 
     try {
@@ -95,16 +95,16 @@ export function startMqttSubscriber(): void {
     try {
       if (topic.endsWith('/telemetry')) {
         const payload = parsed as TelemetryPayload
-        const enriched = await enrichWithOutOfHoursFlag(espacioId, payload)
+        const enriched = await enrichWithOutOfHoursFlag(spaceId, payload)
         await Promise.all([
-          processTelemetry(espacioId, enriched),
-          evaluateAlerts(espacioId, enriched),
+          processTelemetry(spaceId, enriched),
+          evaluateAlerts(spaceId, enriched),
         ])
       } else if (topic.endsWith('/reported')) {
-        await processReported(espacioId, parsed as ReportedPayload)
+        await processReported(spaceId, parsed as ReportedPayload)
       }
     } catch (err) {
-      logger.error({ err, topic, espacioId }, 'Error processing MQTT message')
+      logger.error({ err, topic, spaceId }, 'Error processing MQTT message')
     }
   })
 }
@@ -119,12 +119,12 @@ export function stopMqttSubscriber(): Promise<void> {
 /**
  * Publish a desired-state update to the office device.
  */
-export function publishDesired(lugarId: string, espacioId: string, payload: object): void {
+export function publishDesired(locationId: string, spaceId: string, payload: object): void {
   if (!client?.connected) {
-    logger.warn({ lugarId, espacioId }, 'MQTT client not connected; cannot publish desired')
+    logger.warn({ locationId, spaceId }, 'MQTT client not connected; cannot publish desired')
     return
   }
-  const topic = `${DESIRED_TOPIC_PREFIX}/${lugarId}/offices/${espacioId}/desired`
+  const topic = `${DESIRED_TOPIC_PREFIX}/${locationId}/offices/${spaceId}/desired`
   client.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
     if (err) logger.error({ err, topic }, 'Failed to publish desired')
     else logger.debug({ topic }, 'Published desired')

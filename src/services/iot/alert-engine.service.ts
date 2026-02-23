@@ -4,18 +4,18 @@ import type { TelemetryPayload, AlertKind, AlertState } from '../../types/iot.ty
 import { broadcast } from './sse-manager.service.js'
 import { logger } from '../../utils/logger.js'
 
-// In-memory state keyed by `${espacioId}:${alertKind}`
+// In-memory state keyed by `${spaceId}:${alertKind}`
 const alertStates = new Map<string, AlertState>()
 
-function getKey(espacioId: string, kind: AlertKind): string {
-  return `${espacioId}:${kind}`
+function getKey(spaceId: string, kind: AlertKind): string {
+  return `${spaceId}:${kind}`
 }
 
-function getOrCreateState(espacioId: string, kind: AlertKind): AlertState {
-  const key = getKey(espacioId, kind)
+function getOrCreateState(spaceId: string, kind: AlertKind): AlertState {
+  const key = getKey(spaceId, kind)
   if (!alertStates.has(key)) {
     alertStates.set(key, {
-      espacioId,
+      spaceId,
       kind,
       conditionStartedAt: null,
       alertOpenedAt: null,
@@ -70,14 +70,14 @@ const RULES: AlertRule[] = [
   },
 ]
 
-async function openAlert(espacioId: string, rule: AlertRule, payload: TelemetryPayload): Promise<void> {
-  const state = getOrCreateState(espacioId, rule.kind)
+async function openAlert(spaceId: string, rule: AlertRule, payload: TelemetryPayload): Promise<void> {
+  const state = getOrCreateState(spaceId, rule.kind)
   if (state.isOpen) return
 
   const now = new Date()
   const alert = await prisma.alert.create({
     data: {
-      espacioId,
+      spaceId,
       kind: rule.kind,
       startedAt: now,
       metaJson: rule.buildMeta(payload) as object,
@@ -89,17 +89,17 @@ async function openAlert(espacioId: string, rule: AlertRule, payload: TelemetryP
   state.conditionStartedAt = null
   state.resolutionStartedAt = null
 
-  logger.warn({ alertId: alert.id, espacioId, kind: rule.kind }, 'Alert opened')
+  logger.warn({ alertId: alert.id, spaceId, kind: rule.kind }, 'Alert opened')
   broadcast('alert', { type: 'opened', alert })
 }
 
-async function resolveAlert(espacioId: string, rule: AlertRule): Promise<void> {
-  const state = getOrCreateState(espacioId, rule.kind)
+async function resolveAlert(spaceId: string, rule: AlertRule): Promise<void> {
+  const state = getOrCreateState(spaceId, rule.kind)
   if (!state.isOpen) return
 
   const now = new Date()
   const openAlert = await prisma.alert.findFirst({
-    where: { espacioId, kind: rule.kind, resolvedAt: null },
+    where: { spaceId, kind: rule.kind, resolvedAt: null },
     orderBy: { startedAt: 'desc' },
   })
 
@@ -118,21 +118,21 @@ async function resolveAlert(espacioId: string, rule: AlertRule): Promise<void> {
   state.conditionStartedAt = null
   state.resolutionStartedAt = null
 
-  logger.info({ alertId: resolved.id, espacioId, kind: rule.kind }, 'Alert resolved')
+  logger.info({ alertId: resolved.id, spaceId, kind: rule.kind }, 'Alert resolved')
   broadcast('alert', { type: 'resolved', alert: resolved })
 }
 
 export async function evaluateAlerts(
-  espacioId: string,
+  spaceId: string,
   payload: TelemetryPayload,
 ): Promise<void> {
   // Fetch desired config for threshold-based rules
-  const desired = await prisma.deviceDesired.findUnique({ where: { espacioId } })
+  const desired = await prisma.deviceDesired.findUnique({ where: { spaceId } })
 
   const now = Date.now()
 
   for (const rule of RULES) {
-    const state = getOrCreateState(espacioId, rule.kind)
+    const state = getOrCreateState(spaceId, rule.kind)
 
     if (!state.isOpen) {
       // Check if condition is continuously triggering
@@ -140,7 +140,7 @@ export async function evaluateAlerts(
         if (!state.conditionStartedAt) {
           state.conditionStartedAt = new Date(now)
         } else if (now - state.conditionStartedAt.getTime() >= rule.openWindowMs) {
-          await openAlert(espacioId, rule, payload)
+          await openAlert(spaceId, rule, payload)
         }
       } else {
         state.conditionStartedAt = null
@@ -151,7 +151,7 @@ export async function evaluateAlerts(
         if (!state.resolutionStartedAt) {
           state.resolutionStartedAt = new Date(now)
         } else if (now - state.resolutionStartedAt.getTime() >= rule.resolveWindowMs) {
-          await resolveAlert(espacioId, rule)
+          await resolveAlert(spaceId, rule)
         }
       } else {
         state.resolutionStartedAt = null
@@ -161,14 +161,14 @@ export async function evaluateAlerts(
 }
 
 export async function getAlerts(
-  espacioId: string,
+  spaceId: string,
   activeOnly: boolean,
   kind?: AlertKind,
   limit = 50,
 ) {
   return prisma.alert.findMany({
     where: {
-      espacioId,
+      spaceId,
       ...(activeOnly ? { resolvedAt: null } : {}),
       ...(kind ? { kind } : {}),
     },

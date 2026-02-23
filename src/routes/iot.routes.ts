@@ -54,77 +54,77 @@ export async function iotRoutes(fastify: FastifyInstance): Promise<void> {
   })
 
   // Digital twin
-  f.get('/espacios/:id/twin', {
+  f.get('/spaces/:id/twin', {
     schema: { params: iotParamsSchema },
   }, async (request) => {
     return getTwinState(request.params.id)
   })
 
-  f.patch('/espacios/:id/desired', {
+  f.patch('/spaces/:id/desired', {
     preHandler: [requireAdminHook],
     schema: { params: iotParamsSchema, body: updateDesiredSchema },
   }, async (request) => {
-    const { id: espacioId } = request.params
+    const { id: spaceId } = request.params
 
-    // Get lugarId for MQTT publish
-    const espacio = await prisma.espacio.findUnique({
-      where: { id: espacioId },
-      select: { lugarId: true },
+    // Get locationId for MQTT publish
+    const space = await prisma.space.findUnique({
+      where: { id: spaceId },
+      select: { locationId: true },
     })
 
-    const desired = await updateDesired(espacioId, {
+    const desired = await updateDesired(spaceId, {
       samplingIntervalSec: request.body.samplingIntervalSec,
       co2_alert_threshold: request.body.co2AlertThreshold,
     })
 
-    if (espacio) {
-      publishDesired(espacio.lugarId, espacioId, request.body)
+    if (space) {
+      publishDesired(space.locationId, spaceId, request.body)
     }
 
     return desired
   })
 
   // Office hours
-  f.get('/espacios/:id/office-hours', {
+  f.get('/spaces/:id/office-hours', {
     schema: { params: iotParamsSchema },
   }, async (request, reply) => {
-    const hours = await prisma.officeHours.findUnique({ where: { espacioId: request.params.id } })
+    const hours = await prisma.officeHours.findUnique({ where: { spaceId: request.params.id } })
     if (!hours) return reply.status(404).send({ message: 'Office hours not configured' })
     return hours
   })
 
-  f.put('/espacios/:id/office-hours', {
+  f.put('/spaces/:id/office-hours', {
     preHandler: [requireAdminHook],
     schema: { params: iotParamsSchema, body: updateOfficeHoursSchema },
   }, async (request) => {
-    const { apertura, cierre, timezone, diasLaborales } = request.body
+    const { openTime, closeTime, timezone, workDays } = request.body
     return prisma.officeHours.upsert({
-      where: { espacioId: request.params.id },
+      where: { spaceId: request.params.id },
       create: {
-        espacioId: request.params.id,
-        apertura: apertura ?? '09:00',
-        cierre: cierre ?? '18:00',
+        spaceId: request.params.id,
+        openTime: openTime ?? '09:00',
+        closeTime: closeTime ?? '18:00',
         ...(timezone ? { timezone } : {}),
-        ...(diasLaborales ? { diasLaborales } : {}),
+        ...(workDays ? { workDays } : {}),
       },
       update: {
-        ...(apertura ? { apertura } : {}),
-        ...(cierre ? { cierre } : {}),
+        ...(openTime ? { openTime } : {}),
+        ...(closeTime ? { closeTime } : {}),
         ...(timezone ? { timezone } : {}),
-        ...(diasLaborales ? { diasLaborales } : {}),
+        ...(workDays ? { workDays } : {}),
       },
     })
   })
 
   // Telemetry history
-  f.get('/espacios/:id/telemetry', {
+  f.get('/spaces/:id/telemetry', {
     schema: { params: iotParamsSchema, querystring: getTelemetryQuerySchema },
   }, async (request) => {
     return getTelemetryHistory(request.params.id, request.query.minutes)
   })
 
   // Alerts
-  f.get('/espacios/:id/alerts', {
+  f.get('/spaces/:id/alerts', {
     schema: { params: iotParamsSchema, querystring: getAlertsQuerySchema },
   }, async (request) => {
     const { active, kind, limit } = request.query

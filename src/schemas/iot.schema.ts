@@ -10,16 +10,16 @@ export const updateDesiredSchema = z.object({
 })
 
 export const updateOfficeHoursSchema = z.object({
-  apertura: z
+  openTime: z
     .string()
-    .regex(/^\d{2}:\d{2}$/, 'apertura must be in HH:mm format')
+    .regex(/^\d{2}:\d{2}$/, 'openTime must be in HH:mm format')
     .optional(),
-  cierre: z
+  closeTime: z
     .string()
-    .regex(/^\d{2}:\d{2}$/, 'cierre must be in HH:mm format')
+    .regex(/^\d{2}:\d{2}$/, 'closeTime must be in HH:mm format')
     .optional(),
   timezone: z.string().min(1).optional(),
-  diasLaborales: z
+  workDays: z
     .array(z.number().int().min(1).max(7))
     .min(1)
     .optional(),

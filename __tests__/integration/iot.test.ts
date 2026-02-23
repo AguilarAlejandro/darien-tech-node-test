@@ -2,7 +2,7 @@ import { buildApp } from '../../src/app'
 
 const ADMIN_KEY = 'admin-secret-key-123'
 const USER_KEY = 'user-secret-key-456'
-const ESPACIO_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+const SPACE_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 
 let app: Awaited<ReturnType<typeof buildApp>>
 
@@ -15,7 +15,7 @@ afterAll(async () => {
   // Restore desired config to seed values so subsequent test runs are idempotent
   await app.inject({
     method: 'PATCH',
-    url: `/api/v1/iot/espacios/${ESPACIO_ID}/desired`,
+    url: `/api/v1/iot/spaces/${SPACE_ID}/desired`,
     headers: { 'x-api-key': ADMIN_KEY, 'Content-Type': 'application/json' },
     payload: { samplingIntervalSec: 10, co2AlertThreshold: 1000 },
   })
@@ -23,11 +23,11 @@ afterAll(async () => {
 })
 
 describe('IoT Endpoints', () => {
-  describe('GET /api/v1/iot/espacios/:id/twin', () => {
+  describe('GET /api/v1/iot/spaces/:id/twin', () => {
     it('returns desired and reported objects', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/twin`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/twin`,
         headers: { 'x-api-key': USER_KEY },
       })
       expect(res.statusCode).toBe(200)
@@ -37,11 +37,11 @@ describe('IoT Endpoints', () => {
     })
   })
 
-  describe('PATCH /api/v1/iot/espacios/:id/desired', () => {
+  describe('PATCH /api/v1/iot/spaces/:id/desired', () => {
     it('updates desired config (admin only)', async () => {
       const res = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/desired`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/desired`,
         headers: { 'x-api-key': ADMIN_KEY, 'Content-Type': 'application/json' },
         payload: { samplingIntervalSec: 30, co2AlertThreshold: 1200 },
       })
@@ -54,7 +54,7 @@ describe('IoT Endpoints', () => {
     it('requires admin — user gets 403', async () => {
       const res = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/desired`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/desired`,
         headers: { 'x-api-key': USER_KEY, 'Content-Type': 'application/json' },
         payload: { samplingIntervalSec: 5 },
       })
@@ -64,7 +64,7 @@ describe('IoT Endpoints', () => {
     it('validates co2AlertThreshold range', async () => {
       const res = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/desired`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/desired`,
         headers: { 'x-api-key': ADMIN_KEY, 'Content-Type': 'application/json' },
         payload: { co2AlertThreshold: 99999 }, // max is 5000
       })
@@ -72,25 +72,25 @@ describe('IoT Endpoints', () => {
     })
   })
 
-  describe('GET /api/v1/iot/espacios/:id/office-hours', () => {
-    it('returns office hours for seeded espacio', async () => {
+  describe('GET /api/v1/iot/spaces/:id/office-hours', () => {
+    it('returns office hours for seeded space', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/office-hours`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/office-hours`,
         headers: { 'x-api-key': USER_KEY },
       })
       expect(res.statusCode).toBe(200)
       const body = JSON.parse(res.body)
-      expect(body.apertura).toBeDefined()
-      expect(body.cierre).toBeDefined()
+      expect(body.openTime).toBeDefined()
+      expect(body.closeTime).toBeDefined()
     })
   })
 
-  describe('GET /api/v1/iot/espacios/:id/telemetry', () => {
+  describe('GET /api/v1/iot/spaces/:id/telemetry', () => {
     it('returns empty array when no telemetry data exists', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/telemetry?minutes=60`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/telemetry?minutes=60`,
         headers: { 'x-api-key': USER_KEY },
       })
       expect(res.statusCode).toBe(200)
@@ -98,11 +98,11 @@ describe('IoT Endpoints', () => {
     })
   })
 
-  describe('GET /api/v1/iot/espacios/:id/alerts', () => {
+  describe('GET /api/v1/iot/spaces/:id/alerts', () => {
     it('returns empty array initially', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/api/v1/iot/espacios/${ESPACIO_ID}/alerts`,
+        url: `/api/v1/iot/spaces/${SPACE_ID}/alerts`,
         headers: { 'x-api-key': USER_KEY },
       })
       expect(res.statusCode).toBe(200)

@@ -21,7 +21,7 @@ export interface ReportedPayload {
 
 export interface SSEEvent {
   type: 'telemetry' | 'alert' | 'twin_update'
-  espacioId: string
+  spaceId: string
   data: unknown
   timestamp: string
 }
@@ -29,7 +29,7 @@ export interface SSEEvent {
 export type AlertKind = 'CO2' | 'OCCUPANCY_MAX' | 'OCCUPANCY_UNEXPECTED'
 
 export interface AlertState {
-  espacioId: string
+  spaceId: string
   kind: AlertKind
   conditionStartedAt: Date | null  // When the triggering condition first started
   alertOpenedAt: Date | null       // When the DB alert was created (condition met window)

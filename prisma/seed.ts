@@ -28,144 +28,144 @@ async function main() {
 
   console.log(`✅ API Keys created: admin=${adminKey.key}, user=${userKey.key}`)
 
-  // --- Lugares ---
-  const lugar1 = await prisma.lugar.upsert({
+  // --- Locations ---
+  const location1 = await prisma.location.upsert({
     where: { id: '11111111-1111-1111-1111-111111111111' },
     update: {},
     create: {
       id: '11111111-1111-1111-1111-111111111111',
-      nombre: 'Torre de Innovación Norte',
-      latitud: 19.4326,
-      longitud: -99.1332,
+      name: 'Torre de Innovación Norte',
+      latitude: 19.4326,
+      longitude: -99.1332,
     },
   })
 
-  const lugar2 = await prisma.lugar.upsert({
+  const location2 = await prisma.location.upsert({
     where: { id: '22222222-2222-2222-2222-222222222222' },
     update: {},
     create: {
       id: '22222222-2222-2222-2222-222222222222',
-      nombre: 'Hub Creativo Sur',
-      latitud: 19.4284,
-      longitud: -99.1671,
+      name: 'Hub Creativo Sur',
+      latitude: 19.4284,
+      longitude: -99.1671,
     },
   })
 
-  console.log(`✅ Lugares: ${lugar1.nombre}, ${lugar2.nombre}`)
+  console.log(`✅ Locations: ${location1.name}, ${location2.name}`)
 
-  // --- Espacios ---
-  const sala1 = await prisma.espacio.upsert({
+  // --- Spaces ---
+  const space1 = await prisma.space.upsert({
     where: { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
     update: {},
     create: {
       id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      lugarId: lugar1.id,
-      nombre: 'Sala Azul',
-      referencia: 'Piso 3, Ala oeste',
-      capacidad: 8,
-      descripcion: 'Sala de reuniones con proyector y pizarrón inteligente.',
+      locationId: location1.id,
+      name: 'Sala Azul',
+      reference: 'Piso 3, Ala oeste',
+      capacity: 8,
+      description: 'Sala de reuniones con proyector y pizarrón inteligente.',
     },
   })
 
-  const sala2 = await prisma.espacio.upsert({
+  const space2 = await prisma.space.upsert({
     where: { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' },
     update: {},
     create: {
       id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-      lugarId: lugar1.id,
-      nombre: 'Área Colaborativa Verde',
-      referencia: 'Piso 1',
-      capacidad: 20,
-      descripcion: 'Espacio abierto con mesas modulares para trabajo en equipo.',
+      locationId: location1.id,
+      name: 'Área Colaborativa Verde',
+      reference: 'Piso 1',
+      capacity: 20,
+      description: 'Espacio abierto con mesas modulares para trabajo en equipo.',
     },
   })
 
-  const sala3 = await prisma.espacio.upsert({
+  const space3 = await prisma.space.upsert({
     where: { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc' },
     update: {},
     create: {
       id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
-      lugarId: lugar2.id,
-      nombre: 'Cabina Creativa A',
-      referencia: 'Planta baja',
-      capacidad: 4,
-      descripcion: 'Cabina privada con insonorización acústica.',
+      locationId: location2.id,
+      name: 'Cabina Creativa A',
+      reference: 'Planta baja',
+      capacity: 4,
+      description: 'Cabina privada con insonorización acústica.',
     },
   })
 
-  const sala4 = await prisma.espacio.upsert({
+  const space4 = await prisma.space.upsert({
     where: { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd' },
     update: {},
     create: {
       id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
-      lugarId: lugar2.id,
-      nombre: 'Sala Principal',
-      referencia: 'Piso 2',
-      capacidad: 30,
-      descripcion: 'Sala de conferencias para presentaciones y eventos.',
+      locationId: location2.id,
+      name: 'Sala Principal',
+      reference: 'Piso 2',
+      capacity: 30,
+      description: 'Sala de conferencias para presentaciones y eventos.',
     },
   })
 
-  console.log(`✅ Espacios: ${sala1.nombre}, ${sala2.nombre}, ${sala3.nombre}, ${sala4.nombre}`)
+  console.log(`✅ Spaces: ${space1.name}, ${space2.name}, ${space3.name}, ${space4.name}`)
 
   // --- Office Hours ---
   const weekdays = [1, 2, 3, 4, 5]
 
   await prisma.officeHours.upsert({
-    where: { espacioId: sala1.id },
+    where: { spaceId: space1.id },
     update: {},
     create: {
-      espacioId: sala1.id,
-      apertura: '09:00',
-      cierre: '18:00',
+      spaceId: space1.id,
+      openTime: '09:00',
+      closeTime: '18:00',
       timezone: 'America/Mexico_City',
-      diasLaborales: weekdays,
+      workDays: weekdays,
     },
   })
 
   await prisma.officeHours.upsert({
-    where: { espacioId: sala2.id },
+    where: { spaceId: space2.id },
     update: {},
     create: {
-      espacioId: sala2.id,
-      apertura: '08:00',
-      cierre: '20:00',
+      spaceId: space2.id,
+      openTime: '08:00',
+      closeTime: '20:00',
       timezone: 'America/Mexico_City',
-      diasLaborales: weekdays,
+      workDays: weekdays,
     },
   })
 
   await prisma.officeHours.upsert({
-    where: { espacioId: sala3.id },
+    where: { spaceId: space3.id },
     update: {},
     create: {
-      espacioId: sala3.id,
-      apertura: '09:00',
-      cierre: '17:00',
+      spaceId: space3.id,
+      openTime: '09:00',
+      closeTime: '17:00',
       timezone: 'America/Mexico_City',
-      diasLaborales: weekdays,
+      workDays: weekdays,
     },
   })
 
   await prisma.officeHours.upsert({
-    where: { espacioId: sala4.id },
+    where: { spaceId: space4.id },
     update: {},
     create: {
-      espacioId: sala4.id,
-      apertura: '08:00',
-      cierre: '22:00',
+      spaceId: space4.id,
+      openTime: '08:00',
+      closeTime: '22:00',
       timezone: 'America/Mexico_City',
-      diasLaborales: [1, 2, 3, 4, 5, 6],
+      workDays: [1, 2, 3, 4, 5, 6],
     },
   })
 
   // --- Device Desired (IoT config) ---
-  for (const espacio of [sala1, sala2, sala3, sala4]) {
+  for (const space of [space1, space2, space3, space4]) {
     await prisma.deviceDesired.upsert({
-      where: { espacioId: espacio.id },
+      where: { spaceId: space.id },
       update: {},
       create: {
-        espacioId: espacio.id,
+        spaceId: space.id,
         samplingIntervalSec: 10,
         co2AlertThreshold: 1000,
       },
@@ -174,42 +174,42 @@ async function main() {
 
   console.log('✅ Office hours + device desired created')
 
-  // --- Sample Reservations ---
+  // --- Sample Bookings ---
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
 
-  await prisma.reserva.upsert({
+  await prisma.booking.upsert({
     where: { id: 'res00001-0000-0000-0000-000000000001' },
     update: {},
     create: {
       id: 'res00001-0000-0000-0000-000000000001',
-      espacioId: sala1.id,
-      lugarId: lugar1.id,
-      emailCliente: 'ana@example.com',
-      fechaDeReserva: tomorrow,
-      horaInicio: new Date(tomorrow.setHours(9, 0, 0, 0)),
-      horaFin: new Date(new Date(tomorrow).setHours(11, 0, 0, 0)),
+      spaceId: space1.id,
+      locationId: location1.id,
+      clientEmail: 'ana@example.com',
+      bookingDate: tomorrow,
+      startTime: new Date(tomorrow.setHours(9, 0, 0, 0)),
+      endTime: new Date(new Date(tomorrow).setHours(11, 0, 0, 0)),
     },
   })
 
-  await prisma.reserva.upsert({
+  await prisma.booking.upsert({
     where: { id: 'res00002-0000-0000-0000-000000000002' },
     update: {},
     create: {
       id: 'res00002-0000-0000-0000-000000000002',
-      espacioId: sala2.id,
-      lugarId: lugar1.id,
-      emailCliente: 'carlos@example.com',
-      fechaDeReserva: tomorrow,
-      horaInicio: new Date(new Date(tomorrow).setHours(14, 0, 0, 0)),
-      horaFin: new Date(new Date(tomorrow).setHours(16, 0, 0, 0)),
+      spaceId: space2.id,
+      locationId: location1.id,
+      clientEmail: 'carlos@example.com',
+      bookingDate: tomorrow,
+      startTime: new Date(new Date(tomorrow).setHours(14, 0, 0, 0)),
+      endTime: new Date(new Date(tomorrow).setHours(16, 0, 0, 0)),
     },
   })
 
-  console.log('✅ Sample reservations created')
+  console.log('✅ Sample bookings created')
 
   console.log('\n🎉 Seed complete!')
   console.log(`\n📋 Dev API Keys:`)

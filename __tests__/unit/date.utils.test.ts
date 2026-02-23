@@ -58,10 +58,10 @@ describe('date.utils', () => {
 
   describe('isWithinOfficeHours', () => {
     const officeHours = {
-      apertura: '09:00',
-      cierre: '18:00',
+      openTime: '09:00',
+      closeTime: '18:00',
       timezone: 'America/Mexico_City',
-      diasLaborales: [1, 2, 3, 4, 5], // Mon-Fri
+      workDays: [1, 2, 3, 4, 5], // Mon-Fri
     }
 
     it('returns true for a Monday at 10:00 CDT (UTC-5 → UTC 15:00)', () => {

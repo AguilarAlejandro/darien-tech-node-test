@@ -3,15 +3,15 @@ import type { DesiredPayload, ReportedPayload } from '../../types/iot.types.js'
 import { broadcast } from './sse-manager.service.js'
 
 export async function processReported(
-  espacioId: string,
+  spaceId: string,
   payload: ReportedPayload,
 ): Promise<void> {
   const reportedAt = payload.ts ? new Date(payload.ts) : new Date()
 
   await prisma.deviceReported.upsert({
-    where: { espacioId },
+    where: { spaceId },
     create: {
-      espacioId,
+      spaceId,
       samplingIntervalSec: payload.samplingIntervalSec,
       co2AlertThreshold: payload.co2_alert_threshold,
       firmwareVersion: payload.firmwareVersion,
@@ -25,18 +25,18 @@ export async function processReported(
     },
   })
 
-  broadcast('twin_update', { espacioId, kind: 'reported', payload, ts: reportedAt.toISOString() })
+  broadcast('twin_update', { spaceId, kind: 'reported', payload, ts: reportedAt.toISOString() })
 }
 
 export async function updateDesired(
-  espacioId: string,
+  spaceId: string,
   data: DesiredPayload,
 ): Promise<unknown> {
   // Ensure DeviceDesired record exists first
-  const existing = await prisma.deviceDesired.findUnique({ where: { espacioId } })
+  const existing = await prisma.deviceDesired.findUnique({ where: { spaceId } })
   const desired = existing
     ? await prisma.deviceDesired.update({
-        where: { espacioId },
+        where: { spaceId },
         data: {
           ...(data.samplingIntervalSec != null ? { samplingIntervalSec: data.samplingIntervalSec } : {}),
           ...(data.co2_alert_threshold != null ? { co2AlertThreshold: data.co2_alert_threshold } : {}),
@@ -44,14 +44,14 @@ export async function updateDesired(
       })
     : await prisma.deviceDesired.create({
         data: {
-          espacioId,
+          spaceId,
           samplingIntervalSec: data.samplingIntervalSec ?? 10,
           co2AlertThreshold: data.co2_alert_threshold ?? 1000,
         },
       })
 
   broadcast('twin_update', {
-    espacioId,
+    spaceId,
     kind: 'desired',
     payload: desired,
     ts: new Date().toISOString(),
@@ -60,10 +60,10 @@ export async function updateDesired(
   return desired
 }
 
-export async function getTwinState(espacioId: string) {
+export async function getTwinState(spaceId: string) {
   const [desired, reported] = await Promise.all([
-    prisma.deviceDesired.findUnique({ where: { espacioId } }),
-    prisma.deviceReported.findUnique({ where: { espacioId } }),
+    prisma.deviceDesired.findUnique({ where: { spaceId } }),
+    prisma.deviceReported.findUnique({ where: { spaceId } }),
   ])
   return { desired, reported }
 }

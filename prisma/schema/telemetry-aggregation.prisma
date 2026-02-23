@@ -1,6 +1,6 @@
 model TelemetryAggregation {
-  id             String   @id @default(uuid())
-  espacioId      String   @map("espacio_id")
+  id        String @id @default(uuid())
+  spaceId   String @map("space_id")
   windowStart    DateTime @map("window_start")
   windowEnd      DateTime @map("window_end")
 
@@ -31,9 +31,9 @@ model TelemetryAggregation {
 
   sampleCount Int @map("sample_count")
 
-  espacio Espacio @relation(fields: [espacioId], references: [id])
+  space Space @relation(fields: [spaceId], references: [id])
 
-  @@unique([espacioId, windowStart])
-  @@index([espacioId, windowStart])
+  @@unique([spaceId, windowStart])
+  @@index([spaceId, windowStart])
   @@map("telemetry_aggregations")
 }

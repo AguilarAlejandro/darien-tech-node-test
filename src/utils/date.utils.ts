@@ -52,10 +52,10 @@ export function parseTimeString(time: string): { hours: number; minutes: number 
  */
 export function isWithinOfficeHours(
   officeHours: {
-    apertura: string   // "HH:mm"
-    cierre: string     // "HH:mm"
+    openTime: string   // "HH:mm"
+    closeTime: string  // "HH:mm"
     timezone: string
-    diasLaborales: number[]  // 1=Mon...7=Sun (ISO weekday)
+    workDays: number[]  // 1=Mon...7=Sun (ISO weekday)
   },
   utcDate: Date,
 ): boolean {
@@ -88,12 +88,12 @@ export function isWithinOfficeHours(
   }
   const localIsoDay = dayMap[localDayName] ?? 0
 
-  const isWorkDay = officeHours.diasLaborales.includes(localIsoDay)
+  const isWorkDay = officeHours.workDays.includes(localIsoDay)
   if (!isWorkDay) return false
 
   const currentMinutes = hour * 60 + minute
-  const { hours: openH, minutes: openM } = parseTimeString(officeHours.apertura)
-  const { hours: closeH, minutes: closeM } = parseTimeString(officeHours.cierre)
+  const { hours: openH, minutes: openM } = parseTimeString(officeHours.openTime)
+  const { hours: closeH, minutes: closeM } = parseTimeString(officeHours.closeTime)
 
   const openMinutes = openH * 60 + openM
   const closeMinutes = closeH * 60 + closeM

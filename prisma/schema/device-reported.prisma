@@ -1,13 +1,13 @@
 model DeviceReported {
   id                  String   @id @default(uuid())
-  espacioId           String   @unique @map("espacio_id")
+  spaceId             String   @unique @map("space_id")
   samplingIntervalSec Int?     @map("sampling_interval_sec")
   co2AlertThreshold   Int?     @map("co2_alert_threshold")
   firmwareVersion     String?  @map("firmware_version")
   reportedAt          DateTime @map("reported_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
-  espacio Espacio @relation(fields: [espacioId], references: [id])
+  space Space @relation(fields: [spaceId], references: [id])
 
   @@map("device_reported")
 }

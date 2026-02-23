@@ -7,9 +7,9 @@ import {
 import { logger } from './utils/logger.js'
 import { buildErrorHandler } from './utils/error-handler.js'
 import { authHook } from './auth/auth.hook.js'
-import { lugarRoutes } from './routes/lugares.routes.js'
-import { espacioRoutes } from './routes/espacios.routes.js'
-import { reservaRoutes } from './routes/reservas.routes.js'
+import { locationRoutes } from './routes/locations.routes.js'
+import { spaceRoutes } from './routes/spaces.routes.js'
+import { bookingRoutes } from './routes/bookings.routes.js'
 import { iotRoutes } from './routes/iot.routes.js'
 import { apiKeyRoutes } from './routes/api-keys.routes.js'
 
@@ -36,9 +36,9 @@ export async function buildApp() {
   }))
 
   // API routes under /api/v1
-  await fastify.register(lugarRoutes, { prefix: '/api/v1/lugares' })
-  await fastify.register(espacioRoutes, { prefix: '/api/v1/espacios' })
-  await fastify.register(reservaRoutes, { prefix: '/api/v1/reservas' })
+  await fastify.register(locationRoutes, { prefix: '/api/v1/locations' })
+  await fastify.register(spaceRoutes, { prefix: '/api/v1/spaces' })
+  await fastify.register(bookingRoutes, { prefix: '/api/v1/bookings' })
   await fastify.register(iotRoutes, { prefix: '/api/v1/iot' })
   await fastify.register(apiKeyRoutes, { prefix: '/api/v1/api-keys' })
 

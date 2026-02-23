@@ -8,7 +8,7 @@ import { broadcast } from './sse-manager.service.js'
  * and broadcast the update over SSE.
  */
 export async function processTelemetry(
-  espacioId: string,
+  spaceId: string,
   payload: TelemetryPayload,
 ): Promise<void> {
   const ts = payload.ts ? new Date(payload.ts) : new Date()
@@ -17,13 +17,13 @@ export async function processTelemetry(
 
   // Upsert: if a row already exists for this window, compute running avg/min/max
   const existing = await prisma.telemetryAggregation.findUnique({
-    where: { espacioId_windowStart: { espacioId, windowStart } },
+    where: { spaceId_windowStart: { spaceId, windowStart } },
   })
 
   if (!existing) {
     await prisma.telemetryAggregation.create({
       data: {
-        espacioId,
+        spaceId,
         windowStart,
         windowEnd,
         tempCAvg: payload.temp_c,
@@ -49,7 +49,7 @@ export async function processTelemetry(
     const safeAvg = (prevAvg: number, newVal: number) => (prevAvg * n + newVal) / (n + 1)
 
     await prisma.telemetryAggregation.update({
-      where: { espacioId_windowStart: { espacioId, windowStart } },
+      where: { spaceId_windowStart: { spaceId, windowStart } },
       data: {
         tempCAvg: safeAvg(existing.tempCAvg, payload.temp_c),
         tempCMin: Math.min(existing.tempCMin, payload.temp_c),
@@ -71,13 +71,13 @@ export async function processTelemetry(
     })
   }
 
-  broadcast('telemetry', { espacioId, payload, ts: ts.toISOString() })
+  broadcast('telemetry', { spaceId, payload, ts: ts.toISOString() })
 }
 
-export async function getTelemetryHistory(espacioId: string, minutes: number) {
+export async function getTelemetryHistory(spaceId: string, minutes: number) {
   const since = new Date(Date.now() - minutes * 60 * 1000)
   return prisma.telemetryAggregation.findMany({
-    where: { espacioId, windowStart: { gte: since } },
+    where: { spaceId, windowStart: { gte: since } },
     orderBy: { windowStart: 'asc' },
   })
 }
