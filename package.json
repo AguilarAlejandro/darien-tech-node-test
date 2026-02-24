@@ -14,11 +14,11 @@
     "test:integration": "jest --testPathPattern='__tests__/integration'",
     "test:coverage": "jest --coverage",
     "prisma:generate": "prisma generate --schema prisma/schema",
-    "prisma:migrate": "prisma migrate dev --schema prisma/schema",
-    "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema",
+    "prisma:migrate": "docker exec cowork_api npx prisma migrate dev --schema prisma/schema",
+    "prisma:migrate:deploy": "docker exec cowork_api npx prisma migrate deploy --schema prisma/schema",
     "prisma:studio": "prisma studio --schema prisma/schema",
-    "prisma:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset --schema prisma/schema --force && npm run prisma:seed"
+    "prisma:seed": "docker exec cowork_api npx tsx prisma/seed.ts",
+    "db:reset": "docker exec cowork_api npx prisma migrate reset --schema prisma/schema --force && docker exec cowork_api npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
