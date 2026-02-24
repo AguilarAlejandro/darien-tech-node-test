@@ -2,7 +2,7 @@ import { buildApp } from '../../src/app'
 
 const ADMIN_KEY = 'admin-secret-key-123'
 const USER_KEY = 'user-secret-key-456'
-const SPACE_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+const SPACE_ID = 'b6194839-7438-4587-a52e-eeef27d00282'
 
 let app: Awaited<ReturnType<typeof buildApp>>
 

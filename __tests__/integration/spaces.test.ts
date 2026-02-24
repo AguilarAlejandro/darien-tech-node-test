@@ -4,7 +4,7 @@ const ADMIN_KEY = 'admin-secret-key-123'
 const USER_KEY = 'user-secret-key-456'
 
 // Fixed UUIDs from seed
-const LOCATION_ID = '11111111-1111-1111-1111-111111111111'
+const LOCATION_ID = 'cfaa672e-cf6e-4192-8736-254ca954928c'
 
 let app: Awaited<ReturnType<typeof buildApp>>
 

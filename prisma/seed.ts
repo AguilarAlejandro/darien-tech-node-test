@@ -30,10 +30,10 @@ async function main() {
 
   // --- Locations ---
   const location1 = await prisma.location.upsert({
-    where: { id: '11111111-1111-1111-1111-111111111111' },
+    where: { id: 'cfaa672e-cf6e-4192-8736-254ca954928c' },
     update: {},
     create: {
-      id: '11111111-1111-1111-1111-111111111111',
+      id: 'cfaa672e-cf6e-4192-8736-254ca954928c',
       name: 'Torre de Innovación Norte',
       latitude: 19.4326,
       longitude: -99.1332,
@@ -41,10 +41,10 @@ async function main() {
   })
 
   const location2 = await prisma.location.upsert({
-    where: { id: '22222222-2222-2222-2222-222222222222' },
+    where: { id: '3f1c44fe-d226-4c7a-9192-15c547011bda' },
     update: {},
     create: {
-      id: '22222222-2222-2222-2222-222222222222',
+      id: '3f1c44fe-d226-4c7a-9192-15c547011bda',
       name: 'Hub Creativo Sur',
       latitude: 19.4284,
       longitude: -99.1671,
@@ -55,10 +55,10 @@ async function main() {
 
   // --- Spaces ---
   const space1 = await prisma.space.upsert({
-    where: { id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+    where: { id: 'b6194839-7438-4587-a52e-eeef27d00282' },
     update: {},
     create: {
-      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      id: 'b6194839-7438-4587-a52e-eeef27d00282',
       locationId: location1.id,
       name: 'Sala Azul',
       reference: 'Piso 3, Ala oeste',
@@ -68,10 +68,10 @@ async function main() {
   })
 
   const space2 = await prisma.space.upsert({
-    where: { id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' },
+    where: { id: '7058a9a0-0fe6-4b77-b926-43ab0051eaee' },
     update: {},
     create: {
-      id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+      id: '7058a9a0-0fe6-4b77-b926-43ab0051eaee',
       locationId: location1.id,
       name: 'Área Colaborativa Verde',
       reference: 'Piso 1',
@@ -81,10 +81,10 @@ async function main() {
   })
 
   const space3 = await prisma.space.upsert({
-    where: { id: 'cccccccc-cccc-cccc-cccc-cccccccccccc' },
+    where: { id: 'd7ec71e6-263f-4cf2-a712-9e842f7694f4' },
     update: {},
     create: {
-      id: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+      id: 'd7ec71e6-263f-4cf2-a712-9e842f7694f4',
       locationId: location2.id,
       name: 'Cabina Creativa A',
       reference: 'Planta baja',
@@ -94,10 +94,10 @@ async function main() {
   })
 
   const space4 = await prisma.space.upsert({
-    where: { id: 'dddddddd-dddd-dddd-dddd-dddddddddddd' },
+    where: { id: '8a3be298-fde7-4e7f-9250-44ba968760a8' },
     update: {},
     create: {
-      id: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+      id: '8a3be298-fde7-4e7f-9250-44ba968760a8',
       locationId: location2.id,
       name: 'Sala Principal',
       reference: 'Piso 2',
@@ -182,10 +182,10 @@ async function main() {
   tomorrow.setDate(tomorrow.getDate() + 1)
 
   await prisma.booking.upsert({
-    where: { id: 'res00001-0000-0000-0000-000000000001' },
+    where: { id: 'af9e6dfa-54dd-4d23-be0e-07414744e5a2' },
     update: {},
     create: {
-      id: 'res00001-0000-0000-0000-000000000001',
+      id: 'af9e6dfa-54dd-4d23-be0e-07414744e5a2',
       spaceId: space1.id,
       locationId: location1.id,
       clientEmail: 'ana@example.com',
@@ -196,10 +196,10 @@ async function main() {
   })
 
   await prisma.booking.upsert({
-    where: { id: 'res00002-0000-0000-0000-000000000002' },
+    where: { id: 'f94ab727-6170-4189-8380-8bbf85687db8' },
     update: {},
     create: {
-      id: 'res00002-0000-0000-0000-000000000002',
+      id: 'f94ab727-6170-4189-8380-8bbf85687db8',
       spaceId: space2.id,
       locationId: location1.id,
       clientEmail: 'carlos@example.com',
@@ -222,7 +222,7 @@ async function main() {
     data: [
       // space3 (Cabina Creativa A) — two resolved CO2 spikes
       {
-        id: 'alert001-0000-0000-0000-000000000001',
+        id: '24712d6b-ba11-4d76-853e-e8cf1d11a730',
         spaceId: space3.id,
         kind: AlertKind.CO2,
         startedAt: hoursAgo(26),
@@ -230,7 +230,7 @@ async function main() {
         metaJson: { value: 1182, threshold: 1000, unit: 'ppm' },
       },
       {
-        id: 'alert002-0000-0000-0000-000000000002',
+        id: 'c12ad9f8-7204-478d-8490-23a14fd3732f',
         spaceId: space3.id,
         kind: AlertKind.CO2,
         startedAt: hoursAgo(6),
@@ -239,7 +239,7 @@ async function main() {
       },
       // space1 (Sala Azul) — open OCCUPANCY_MAX (still active)
       {
-        id: 'alert003-0000-0000-0000-000000000003',
+        id: '3e6c93ee-afcb-4a71-9756-ce0d8b600b68',
         spaceId: space1.id,
         kind: AlertKind.OCCUPANCY_MAX,
         startedAt: hoursAgo(1),
@@ -248,7 +248,7 @@ async function main() {
       },
       // space2 (Área Colaborativa Verde) — resolved out-of-hours occupancy
       {
-        id: 'alert004-0000-0000-0000-000000000004',
+        id: '1ead58d7-5c6b-4fd5-92a1-a7294b6597b0',
         spaceId: space2.id,
         kind: AlertKind.OCCUPANCY_UNEXPECTED,
         startedAt: hoursAgo(14),
@@ -257,7 +257,7 @@ async function main() {
       },
       // space4 (Sala Principal) — open CO2 alert
       {
-        id: 'alert005-0000-0000-0000-000000000005',
+        id: 'bdf07ac7-f844-4af3-9b47-8c57fc75808d',
         spaceId: space4.id,
         kind: AlertKind.CO2,
         startedAt: hoursAgo(2),

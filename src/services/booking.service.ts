@@ -5,6 +5,7 @@ import type {
   FindAllBookingsQuery,
 } from '../schemas/booking.schema.js'
 import { checkScheduleConflict, checkWeeklyLimit } from './booking-validation.service.js'
+import { paginate } from './pagination.service.js'
 import type { PaginatedResponse } from '../types/pagination.types.js'
 
 const DEFAULT_INCLUDE = {
@@ -53,7 +54,6 @@ export async function findAllBookings(
   query: FindAllBookingsQuery,
 ): Promise<PaginatedResponse<unknown>> {
   const { page, pageSize, spaceId, clientEmail, dateFrom, dateTo } = query
-  const skip = (page - 1) * pageSize
 
   const where = {
     ...(spaceId ? { spaceId } : {}),
@@ -68,26 +68,19 @@ export async function findAllBookings(
       : {}),
   }
 
-  const [data, total] = await Promise.all([
-    prisma.booking.findMany({
-      where,
-      include: DEFAULT_INCLUDE,
-      orderBy: { startTime: 'asc' },
-      skip,
-      take: pageSize,
-    }),
-    prisma.booking.count({ where }),
-  ])
-
-  return {
-    data,
-    meta: {
-      page,
-      pageSize,
-      total,
-      totalPages: Math.ceil(total / pageSize),
-    },
-  }
+  return paginate(
+    ({ skip, take }) =>
+      prisma.booking.findMany({
+        where,
+        include: DEFAULT_INCLUDE,
+        orderBy: { startTime: 'asc' },
+        skip,
+        take,
+      }),
+    () => prisma.booking.count({ where }),
+    page,
+    pageSize,
+  )
 }
 
 export async function findBookingById(id: string) {
