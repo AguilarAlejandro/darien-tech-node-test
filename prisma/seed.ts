@@ -1,4 +1,4 @@
-import { PrismaClient, ApiKeyRole } from '@prisma/client'
+import { PrismaClient, ApiKeyRole, AlertKind } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -210,6 +210,64 @@ async function main() {
   })
 
   console.log('✅ Sample bookings created')
+
+  // --- Sample Alerts ---
+  // Provide pre-existing alert history so the Alerts tab is populated
+  // without needing the IoT simulator running.
+  const now = new Date()
+  const hoursAgo = (h: number) => new Date(now.getTime() - h * 60 * 60 * 1000)
+
+  await prisma.alert.createMany({
+    skipDuplicates: true,
+    data: [
+      // space3 (Cabina Creativa A) — two resolved CO2 spikes
+      {
+        id: 'alert001-0000-0000-0000-000000000001',
+        spaceId: space3.id,
+        kind: AlertKind.CO2,
+        startedAt: hoursAgo(26),
+        resolvedAt: hoursAgo(24),
+        metaJson: { value: 1182, threshold: 1000, unit: 'ppm' },
+      },
+      {
+        id: 'alert002-0000-0000-0000-000000000002',
+        spaceId: space3.id,
+        kind: AlertKind.CO2,
+        startedAt: hoursAgo(6),
+        resolvedAt: hoursAgo(5),
+        metaJson: { value: 1067, threshold: 1000, unit: 'ppm' },
+      },
+      // space1 (Sala Azul) — open OCCUPANCY_MAX (still active)
+      {
+        id: 'alert003-0000-0000-0000-000000000003',
+        spaceId: space1.id,
+        kind: AlertKind.OCCUPANCY_MAX,
+        startedAt: hoursAgo(1),
+        resolvedAt: null,
+        metaJson: { occupancy: 1.0, capacity: 8 },
+      },
+      // space2 (Área Colaborativa Verde) — resolved out-of-hours occupancy
+      {
+        id: 'alert004-0000-0000-0000-000000000004',
+        spaceId: space2.id,
+        kind: AlertKind.OCCUPANCY_UNEXPECTED,
+        startedAt: hoursAgo(14),
+        resolvedAt: hoursAgo(13),
+        metaJson: { occupancy: 0.15, outOfHours: true },
+      },
+      // space4 (Sala Principal) — open CO2 alert
+      {
+        id: 'alert005-0000-0000-0000-000000000005',
+        spaceId: space4.id,
+        kind: AlertKind.CO2,
+        startedAt: hoursAgo(2),
+        resolvedAt: null,
+        metaJson: { value: 1340, threshold: 1000, unit: 'ppm' },
+      },
+    ],
+  })
+
+  console.log('✅ Sample alerts created')
 
   console.log('\n🎉 Seed complete!')
   console.log(`\n📋 Dev API Keys:`)

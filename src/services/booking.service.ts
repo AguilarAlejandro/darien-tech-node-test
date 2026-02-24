@@ -57,7 +57,7 @@ export async function findAllBookings(
 
   const where = {
     ...(spaceId ? { spaceId } : {}),
-    ...(clientEmail ? { clientEmail } : {}),
+    ...(clientEmail ? { clientEmail: { contains: clientEmail, mode: 'insensitive' as const } } : {}),
     ...(dateFrom || dateTo
       ? {
           bookingDate: {

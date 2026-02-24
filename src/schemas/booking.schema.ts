@@ -42,7 +42,7 @@ export const bookingParamsSchema = z.object({
 
 export const findAllBookingsSchema = paginationSchema.extend({
   spaceId: z.string().uuid().optional(),
-  clientEmail: z.string().email().optional(),
+  clientEmail: z.string().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),
 })

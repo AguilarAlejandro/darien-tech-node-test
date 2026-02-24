@@ -27,6 +27,16 @@ export async function iotRoutes(fastify: FastifyInstance): Promise<void> {
     const req = request.raw
     const res = reply.raw
 
+    // When using reply.raw directly, Fastify's @fastify/cors hook writes its
+    // Access-Control-Allow-Origin header onto the Fastify reply object, which is
+    // never flushed because we bypass reply.send(). Mirror the CORS header
+    // manually so EventSource connections are not blocked by the browser.
+    const origin = request.headers.origin
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin)
+      res.setHeader('Vary', 'Origin')
+    }
+
     res.setHeader('Content-Type', 'text/event-stream')
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
