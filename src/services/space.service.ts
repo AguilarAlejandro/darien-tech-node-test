@@ -1,5 +1,6 @@
 import { prisma } from '../database/prisma.js'
-import type { CreateSpaceBody, UpdateSpaceBody } from '../schemas/space.schema.js'
+import type { CreateSpaceBody, UpdateSpaceBody, FindAllSpacesQuery } from '../schemas/space.schema.js'
+import { paginate } from './pagination.service.js'
 
 const DEFAULT_INCLUDE = {
   location: {
@@ -18,12 +19,22 @@ export async function createSpace(data: CreateSpaceBody) {
   return prisma.space.create({ data, include: DEFAULT_INCLUDE })
 }
 
-export async function findAllSpaces(locationId?: string) {
-  return prisma.space.findMany({
-    where: locationId ? { locationId } : undefined,
-    include: DEFAULT_INCLUDE,
-    orderBy: { name: 'asc' },
-  })
+export async function findAllSpaces(query: FindAllSpacesQuery) {
+  const { page, pageSize, locationId } = query
+  const where = locationId ? { locationId } : undefined
+  return paginate(
+    ({ skip, take }) =>
+      prisma.space.findMany({
+        where,
+        include: DEFAULT_INCLUDE,
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+      }),
+    () => prisma.space.count({ where }),
+    page,
+    pageSize,
+  )
 }
 
 export async function findSpaceById(id: string) {

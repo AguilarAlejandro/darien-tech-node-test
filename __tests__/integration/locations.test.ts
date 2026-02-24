@@ -17,7 +17,7 @@ afterAll(async () => {
 describe('Locations CRUD', () => {
   let createdId: string
 
-  it('GET /api/v1/locations returns array', async () => {
+  it('GET /api/v1/locations returns paginated response', async () => {
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/locations',
@@ -25,8 +25,13 @@ describe('Locations CRUD', () => {
     })
     expect(res.statusCode).toBe(200)
     const body = JSON.parse(res.body)
-    expect(Array.isArray(body)).toBe(true)
-    expect(body.length).toBeGreaterThanOrEqual(2)
+    expect(body).toHaveProperty('data')
+    expect(body).toHaveProperty('meta')
+    expect(Array.isArray(body.data)).toBe(true)
+    expect(body.data.length).toBeGreaterThanOrEqual(2)
+    expect(body.meta).toMatchObject({ page: 1, pageSize: 10 })
+    expect(typeof body.meta.total).toBe('number')
+    expect(typeof body.meta.totalPages).toBe('number')
   })
 
   it('POST /api/v1/locations creates a new location (admin only)', async () => {

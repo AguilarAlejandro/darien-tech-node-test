@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { paginationSchema } from './pagination.schema.js'
 
 export const createLocationSchema = z.object({
   name: z.string().min(1).max(200),
@@ -12,6 +13,9 @@ export const locationParamsSchema = z.object({
   id: z.string().uuid('Invalid UUID'),
 })
 
+export const findAllLocationsSchema = paginationSchema
+
 export type CreateLocationBody = z.infer<typeof createLocationSchema>
 export type UpdateLocationBody = z.infer<typeof updateLocationSchema>
 export type LocationParams = z.infer<typeof locationParamsSchema>
+export type FindAllLocationsQuery = z.infer<typeof findAllLocationsSchema>

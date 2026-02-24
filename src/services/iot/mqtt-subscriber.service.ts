@@ -5,12 +5,17 @@ import { processTelemetry } from './telemetry.service.js'
 import { processReported } from './digital-twin.service.js'
 import { evaluateAlerts } from './alert-engine.service.js'
 import { prisma } from '../../database/prisma.js'
+import { TtlCache } from '../../utils/ttl-cache.js'
 import type {
   TelemetryPayload,
   ReportedPayload,
 } from '../../types/iot.types.js'
+import type { OfficeHours } from '@prisma/client'
 
 let client: mqtt.MqttClient | null = null
+
+// Cache officeHours for 60 s — avoids a DB hit on every MQTT message
+const officeHoursCache = new TtlCache<OfficeHours | null>(60_000)
 
 // sites/{locationId}/offices/{spaceId}/telemetry
 // sites/{locationId}/offices/{spaceId}/reported
@@ -32,8 +37,12 @@ async function enrichWithOutOfHoursFlag(
   spaceId: string,
   payload: TelemetryPayload,
 ): Promise<TelemetryPayload & { outOfHours?: boolean }> {
-  // Check if current time is outside office hours
-  const officeHours = await prisma.officeHours.findUnique({ where: { spaceId } })
+  // Use cached officeHours to avoid a DB query per MQTT message
+  let officeHours = officeHoursCache.get(spaceId)
+  if (officeHours === undefined) {
+    officeHours = await prisma.officeHours.findUnique({ where: { spaceId } })
+    officeHoursCache.set(spaceId, officeHours)
+  }
   if (!officeHours) return payload
 
   const { isWithinOfficeHours } = await import('../../utils/date.utils.js')

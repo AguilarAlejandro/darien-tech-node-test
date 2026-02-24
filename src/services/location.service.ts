@@ -1,5 +1,6 @@
 import { prisma } from '../database/prisma.js'
-import type { CreateLocationBody, UpdateLocationBody } from '../schemas/location.schema.js'
+import type { CreateLocationBody, UpdateLocationBody, FindAllLocationsQuery } from '../schemas/location.schema.js'
+import { paginate } from './pagination.service.js'
 
 export async function createLocation(data: CreateLocationBody) {
   return prisma.location.create({
@@ -8,11 +9,20 @@ export async function createLocation(data: CreateLocationBody) {
   })
 }
 
-export async function findAllLocations() {
-  return prisma.location.findMany({
-    include: { _count: { select: { spaces: true } } },
-    orderBy: { name: 'asc' },
-  })
+export async function findAllLocations(query: FindAllLocationsQuery) {
+  const { page, pageSize } = query
+  return paginate(
+    ({ skip, take }) =>
+      prisma.location.findMany({
+        include: { _count: { select: { spaces: true } } },
+        orderBy: { name: 'asc' },
+        skip,
+        take,
+      }),
+    () => prisma.location.count(),
+    page,
+    pageSize,
+  )
 }
 
 export async function findLocationById(id: string) {

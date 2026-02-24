@@ -4,6 +4,35 @@ API REST para la gestión de reservas en espacios de coworking. Construida con *
 
 ---
 
+## Arquitectura
+
+El proyecto sigue una **arquitectura Service-Layer** (variante MVC sin vistas):
+
+| Capa | Responsabilidad | Ubicación |
+|------|-----------------|-----------|
+| **Routes** (Controller) | Validación HTTP, parseo de query/body/params, respuesta | `src/routes/` |
+| **Services** (Model / Business logic) | Lógica de negocio, acceso a datos vía Prisma | `src/services/` |
+| **Schemas** | Validación y tipado con Zod | `src/schemas/` |
+| **Database** | Singleton de Prisma Client | `src/database/` |
+
+El flujo de una petición es: **Request → Route → Schema validation → Service → Prisma → DB → Response**.
+
+## Stack tecnológico
+
+| Categoría | Tecnología |
+|-----------|------------|
+| Runtime | Node.js v20+ |
+| Framework | Fastify 5 |
+| Lenguaje | TypeScript 5 |
+| ORM | Prisma 6 |
+| Base de datos | PostgreSQL 16 |
+| Validación | Zod |
+| Testing | Jest |
+| IoT / Mensajería | MQTT (mqtt.js) + SSE |
+| Contenedores | Docker + Docker Compose |
+
+---
+
 ## Requisitos previos
 
 - [Node.js](https://nodejs.org/) v20 o superior
@@ -122,7 +151,7 @@ x-api-key: admin-secret-key-123
 ### Locations (`/api/v1/locations`)
 | Method | Route | Description |
 |--------|-------|-------------|
-| GET | `/api/v1/locations` | List all locations |
+| GET | `/api/v1/locations` | Listar locations con paginación (`page`, `pageSize`) |
 | GET | `/api/v1/locations/:id` | Get location by ID |
 | POST | `/api/v1/locations` | Create location *(ADMIN)* |
 | PATCH | `/api/v1/locations/:id` | Update location *(ADMIN)* |
@@ -131,7 +160,7 @@ x-api-key: admin-secret-key-123
 ### Spaces (`/api/v1/spaces`)
 | Method | Route | Description |
 |--------|-------|-------------|
-| GET | `/api/v1/spaces` | List spaces (filter: `locationId`) |
+| GET | `/api/v1/spaces` | Listar spaces con paginación (`page`, `pageSize`, `locationId`) |
 | GET | `/api/v1/spaces/:id` | Get space by ID |
 | POST | `/api/v1/spaces` | Create space *(ADMIN)* |
 | PATCH | `/api/v1/spaces/:id` | Update space *(ADMIN)* |
@@ -217,16 +246,16 @@ Estos deben coincidir con IDs existentes en la base de datos. Con los datos del 
 
 ```bash
 # Sala Azul — Torre de Innovación Norte
-node index.js --site-id 11111111-1111-1111-1111-111111111111 --office-id aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+node index.js --site-id cfaa672e-cf6e-4192-8736-254ca954928c --office-id b6194839-7438-4587-a52e-eeef27d00282
 
 # Área Colaborativa Verde — Torre de Innovación Norte
-node index.js --site-id 11111111-1111-1111-1111-111111111111 --office-id bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+node index.js --site-id cfaa672e-cf6e-4192-8736-254ca954928c --office-id 7058a9a0-0fe6-4b77-b926-43ab0051eaee
 
 # Cabina Creativa A — Hub Creativo Sur
-node index.js --site-id 22222222-2222-2222-2222-222222222222 --office-id cccccccc-cccc-cccc-cccc-cccccccccccc
+node index.js --site-id 3f1c44fe-d226-4c7a-9192-15c547011bda --office-id d7ec71e6-263f-4cf2-a712-9e842f7694f4
 
 # Sala Principal — Hub Creativo Sur
-node index.js --site-id 22222222-2222-2222-2222-222222222222 --office-id dddddddd-dddd-dddd-dddd-dddddddddddd
+node index.js --site-id 3f1c44fe-d226-4c7a-9192-15c547011bda --office-id 8a3be298-fde7-4e7f-9250-44ba968760a8
 ```
 
 Cada proceso publica una lectura cada 10 segundos (configurable con `INTERVAL_SEC` en el `.env` del simulador). Cada lectura incluye temperatura, humedad, CO₂, ocupación y potencia con jitter aleatorio alrededor de los valores base.

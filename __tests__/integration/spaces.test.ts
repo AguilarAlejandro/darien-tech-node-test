@@ -20,7 +20,7 @@ afterAll(async () => {
 describe('Spaces CRUD', () => {
   let createdId: string
 
-  it('GET /api/v1/spaces returns array of spaces', async () => {
+  it('GET /api/v1/spaces returns paginated response', async () => {
     const res = await app.inject({
       method: 'GET',
       url: '/api/v1/spaces',
@@ -28,8 +28,11 @@ describe('Spaces CRUD', () => {
     })
     expect(res.statusCode).toBe(200)
     const body = JSON.parse(res.body)
-    expect(Array.isArray(body)).toBe(true)
-    expect(body.length).toBeGreaterThanOrEqual(1)
+    expect(body).toHaveProperty('data')
+    expect(body).toHaveProperty('meta')
+    expect(Array.isArray(body.data)).toBe(true)
+    expect(body.data.length).toBeGreaterThanOrEqual(1)
+    expect(body.meta).toMatchObject({ page: 1, pageSize: 10 })
   })
 
   it('GET /api/v1/spaces supports filtering by locationId', async () => {
@@ -40,8 +43,8 @@ describe('Spaces CRUD', () => {
     })
     expect(res.statusCode).toBe(200)
     const body = JSON.parse(res.body)
-    expect(Array.isArray(body)).toBe(true)
-    for (const space of body) {
+    expect(Array.isArray(body.data)).toBe(true)
+    for (const space of body.data) {
       expect(space.location.id).toBe(LOCATION_ID)
     }
   })

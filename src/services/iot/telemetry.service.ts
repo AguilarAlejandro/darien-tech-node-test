@@ -15,7 +15,8 @@ export async function processTelemetry(
   const windowStart = getMinuteWindowStart(ts)
   const windowEnd = getMinuteWindowEnd(windowStart)
 
-  // Upsert: if a row already exists for this window, compute running avg/min/max
+  // We need the existing row to compute running averages —
+  // Prisma upsert cannot reference current column values in the update clause.
   const existing = await prisma.telemetryAggregation.findUnique({
     where: { spaceId_windowStart: { spaceId, windowStart } },
   })
@@ -79,5 +80,6 @@ export async function getTelemetryHistory(spaceId: string, minutes: number) {
   return prisma.telemetryAggregation.findMany({
     where: { spaceId, windowStart: { gte: since } },
     orderBy: { windowStart: 'asc' },
+    take: 1500,
   })
 }

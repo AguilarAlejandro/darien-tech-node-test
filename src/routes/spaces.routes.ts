@@ -15,7 +15,7 @@ export async function spaceRoutes(fastify: FastifyInstance): Promise<void> {
   f.get('/', {
     schema: { querystring: findAllSpacesSchema },
   }, async (request) => {
-    return spaceService.findAllSpaces(request.query.locationId)
+    return spaceService.findAllSpaces(request.query)
   })
 
   f.get('/:id', {

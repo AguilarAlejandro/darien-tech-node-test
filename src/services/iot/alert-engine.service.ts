@@ -3,9 +3,14 @@ import { config } from '../../config.js'
 import type { TelemetryPayload, AlertKind, AlertState } from '../../types/iot.types.js'
 import { broadcast } from './sse-manager.service.js'
 import { logger } from '../../utils/logger.js'
+import { TtlCache } from '../../utils/ttl-cache.js'
+import type { DeviceDesired } from '@prisma/client'
 
 // In-memory state keyed by `${spaceId}:${alertKind}`
 const alertStates = new Map<string, AlertState>()
+
+// Cache deviceDesired for 60 s — avoids a DB hit on every MQTT message
+const desiredCache = new TtlCache<DeviceDesired | null>(60_000)
 
 function getKey(spaceId: string, kind: AlertKind): string {
   return `${spaceId}:${kind}`
@@ -126,8 +131,12 @@ export async function evaluateAlerts(
   spaceId: string,
   payload: TelemetryPayload,
 ): Promise<void> {
-  // Fetch desired config for threshold-based rules
-  const desired = await prisma.deviceDesired.findUnique({ where: { spaceId } })
+  // Use cached desired config to avoid a DB query per MQTT message
+  let desired = desiredCache.get(spaceId)
+  if (desired === undefined) {
+    desired = await prisma.deviceDesired.findUnique({ where: { spaceId } })
+    desiredCache.set(spaceId, desired)
+  }
 
   const now = Date.now()
 

@@ -2,13 +2,13 @@ import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { requireAdminHook } from '../auth/require-admin.hook.js'
 import * as locationService from '../services/location.service.js'
-import { createLocationSchema, updateLocationSchema, locationParamsSchema } from '../schemas/location.schema.js'
+import { createLocationSchema, updateLocationSchema, locationParamsSchema, findAllLocationsSchema } from '../schemas/location.schema.js'
 
 export async function locationRoutes(fastify: FastifyInstance): Promise<void> {
   const f = fastify.withTypeProvider<ZodTypeProvider>()
 
-  f.get('/', { schema: {} }, async () => {
-    return locationService.findAllLocations()
+  f.get('/', { schema: { querystring: findAllLocationsSchema } }, async (request) => {
+    return locationService.findAllLocations(request.query)
   })
 
   f.get('/:id', { schema: { params: locationParamsSchema } }, async (request, reply) => {

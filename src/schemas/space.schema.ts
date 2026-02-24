@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { paginationSchema } from './pagination.schema.js'
 
 export const createSpaceSchema = z.object({
   locationId: z.string().uuid('locationId must be a valid UUID'),
@@ -14,7 +15,7 @@ export const spaceParamsSchema = z.object({
   id: z.string().uuid('Invalid UUID'),
 })
 
-export const findAllSpacesSchema = z.object({
+export const findAllSpacesSchema = paginationSchema.extend({
   locationId: z.string().uuid('locationId must be a valid UUID').optional(),
 })
 
