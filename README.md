@@ -67,23 +67,21 @@ MQTT_URL=mqtt://localhost:1883
 
 ## Levantar con Docker (recomendado)
 
-### Modo producción
-
-```bash
-# Construir imágenes y levantar todos los servicios (postgres + api)
-docker compose up --build
-```
-
-La API estará disponible en: `http://localhost:3000`
-
 ### Modo desarrollo (hot reload)
 
 ```bash
-# Usa docker-compose.override.yml automáticamente
-docker compose up --build
+npm run dev:docker
+# equivalente a: docker compose up --build
 ```
 
-Con el override, el código fuente se monta como volumen y el servidor se reinicia automáticamente al guardar cambios.
+El override monta el código fuente como volumen; el servidor se reinicia automáticamente al guardar cambios. La API estará disponible en: `http://localhost:3000`
+
+### Modo producción
+
+```bash
+npm run build:docker
+# equivalente a: docker compose -f docker-compose.yml up --build
+```
 
 ### Detener los servicios
 
@@ -196,20 +194,13 @@ x-api-key: admin-secret-key-123
 ## Ejecutar pruebas
 
 ```bash
-# Todas las pruebas
+# Todas las pruebas (se ejecutan dentro de Docker — no requiere DB local)
 npm test
-
-# Solo pruebas unitarias
-npm run test:unit
-
-# Solo pruebas de integración
-npm run test:integration
-
-# Con reporte de cobertura
-npm run test:coverage
 ```
 
-> Las pruebas de integración requieren una base de datos PostgreSQL disponible. Configura `DATABASE_URL` en tu entorno o utiliza el contenedor Docker.
+Este comando levanta un contenedor `test` efímero dentro de la red Docker, aplica migraciones, ejecuta el seed y lanza Jest. El contenedor se elimina al terminar (`--rm`).
+
+> Las pruebas de integración utilizan la misma instancia de PostgreSQL del stack Docker (`postgres` service). No se requiere ninguna configuración adicional de base de datos.
 
 ---
 
