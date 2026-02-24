@@ -63,5 +63,11 @@ export async function updateSpace(id: string, data: UpdateSpaceBody) {
 }
 
 export async function deleteSpace(id: string) {
+  const bookingCount = await prisma.booking.count({ where: { spaceId: id } })
+  if (bookingCount > 0) {
+    const err = new Error('Cannot delete space — it has active reservations') as Error & { statusCode: number }
+    err.statusCode = 409
+    throw err
+  }
   return prisma.space.delete({ where: { id } })
 }
