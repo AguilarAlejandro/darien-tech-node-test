@@ -5,9 +5,50 @@ CREATE TYPE "AlertKind" AS ENUM ('CO2', 'OCCUPANCY_MAX', 'OCCUPANCY_UNEXPECTED')
 CREATE TYPE "ApiKeyRole" AS ENUM ('ADMIN', 'USER');
 
 -- CreateTable
+CREATE TABLE "locations" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "latitude" DOUBLE PRECISION NOT NULL,
+    "longitude" DOUBLE PRECISION NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "locations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "spaces" (
+    "id" TEXT NOT NULL,
+    "location_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "reference" TEXT,
+    "capacity" INTEGER NOT NULL,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "spaces_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "bookings" (
+    "id" TEXT NOT NULL,
+    "space_id" TEXT NOT NULL,
+    "location_id" TEXT NOT NULL,
+    "client_email" TEXT NOT NULL,
+    "booking_date" TIMESTAMP(3) NOT NULL,
+    "start_time" TIMESTAMP(3) NOT NULL,
+    "end_time" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "bookings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "alerts" (
     "id" TEXT NOT NULL,
-    "espacio_id" TEXT NOT NULL,
+    "space_id" TEXT NOT NULL,
     "kind" "AlertKind" NOT NULL,
     "started_at" TIMESTAMP(3) NOT NULL,
     "resolved_at" TIMESTAMP(3),
@@ -30,9 +71,23 @@ CREATE TABLE "api_keys" (
 );
 
 -- CreateTable
+CREATE TABLE "office_hours" (
+    "id" TEXT NOT NULL,
+    "space_id" TEXT NOT NULL,
+    "open_time" TEXT NOT NULL,
+    "close_time" TEXT NOT NULL,
+    "timezone" TEXT NOT NULL DEFAULT 'America/Mexico_City',
+    "work_days" INTEGER[],
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "office_hours_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "device_desired" (
     "id" TEXT NOT NULL,
-    "espacio_id" TEXT NOT NULL,
+    "space_id" TEXT NOT NULL,
     "sampling_interval_sec" INTEGER NOT NULL DEFAULT 10,
     "co2_alert_threshold" INTEGER NOT NULL DEFAULT 1000,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -43,7 +98,7 @@ CREATE TABLE "device_desired" (
 -- CreateTable
 CREATE TABLE "device_reported" (
     "id" TEXT NOT NULL,
-    "espacio_id" TEXT NOT NULL,
+    "space_id" TEXT NOT NULL,
     "sampling_interval_sec" INTEGER,
     "co2_alert_threshold" INTEGER,
     "firmware_version" TEXT,
@@ -54,64 +109,9 @@ CREATE TABLE "device_reported" (
 );
 
 -- CreateTable
-CREATE TABLE "espacios" (
-    "id" TEXT NOT NULL,
-    "lugar_id" TEXT NOT NULL,
-    "nombre" TEXT NOT NULL,
-    "referencia" TEXT,
-    "capacidad" INTEGER NOT NULL,
-    "descripcion" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "espacios_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "lugares" (
-    "id" TEXT NOT NULL,
-    "nombre" TEXT NOT NULL,
-    "latitud" DOUBLE PRECISION NOT NULL,
-    "longitud" DOUBLE PRECISION NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "lugares_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "office_hours" (
-    "id" TEXT NOT NULL,
-    "espacio_id" TEXT NOT NULL,
-    "apertura" TEXT NOT NULL,
-    "cierre" TEXT NOT NULL,
-    "timezone" TEXT NOT NULL DEFAULT 'America/Mexico_City',
-    "dias_laborales" INTEGER[],
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "office_hours_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "reservas" (
-    "id" TEXT NOT NULL,
-    "espacio_id" TEXT NOT NULL,
-    "lugar_id" TEXT NOT NULL,
-    "email_cliente" TEXT NOT NULL,
-    "fecha_de_reserva" TIMESTAMP(3) NOT NULL,
-    "hora_inicio" TIMESTAMP(3) NOT NULL,
-    "hora_fin" TIMESTAMP(3) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "reservas_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "telemetry_aggregations" (
     "id" TEXT NOT NULL,
-    "espacio_id" TEXT NOT NULL,
+    "space_id" TEXT NOT NULL,
     "window_start" TIMESTAMP(3) NOT NULL,
     "window_end" TIMESTAMP(3) NOT NULL,
     "temp_c_avg" DOUBLE PRECISION NOT NULL,
@@ -135,7 +135,19 @@ CREATE TABLE "telemetry_aggregations" (
 );
 
 -- CreateIndex
-CREATE INDEX "alerts_espacio_id_kind_resolved_at_idx" ON "alerts"("espacio_id", "kind", "resolved_at");
+CREATE INDEX "spaces_location_id_idx" ON "spaces"("location_id");
+
+-- CreateIndex
+CREATE INDEX "bookings_space_id_start_time_end_time_idx" ON "bookings"("space_id", "start_time", "end_time");
+
+-- CreateIndex
+CREATE INDEX "bookings_client_email_idx" ON "bookings"("client_email");
+
+-- CreateIndex
+CREATE INDEX "bookings_location_id_idx" ON "bookings"("location_id");
+
+-- CreateIndex
+CREATE INDEX "alerts_space_id_kind_resolved_at_idx" ON "alerts"("space_id", "kind", "resolved_at");
 
 -- CreateIndex
 CREATE INDEX "alerts_resolved_at_idx" ON "alerts"("resolved_at");
@@ -144,52 +156,40 @@ CREATE INDEX "alerts_resolved_at_idx" ON "alerts"("resolved_at");
 CREATE UNIQUE INDEX "api_keys_key_key" ON "api_keys"("key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "device_desired_espacio_id_key" ON "device_desired"("espacio_id");
+CREATE UNIQUE INDEX "office_hours_space_id_key" ON "office_hours"("space_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "device_reported_espacio_id_key" ON "device_reported"("espacio_id");
+CREATE UNIQUE INDEX "device_desired_space_id_key" ON "device_desired"("space_id");
 
 -- CreateIndex
-CREATE INDEX "espacios_lugar_id_idx" ON "espacios"("lugar_id");
+CREATE UNIQUE INDEX "device_reported_space_id_key" ON "device_reported"("space_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "office_hours_espacio_id_key" ON "office_hours"("espacio_id");
+CREATE INDEX "telemetry_aggregations_space_id_window_start_idx" ON "telemetry_aggregations"("space_id", "window_start");
 
 -- CreateIndex
-CREATE INDEX "reservas_espacio_id_hora_inicio_hora_fin_idx" ON "reservas"("espacio_id", "hora_inicio", "hora_fin");
-
--- CreateIndex
-CREATE INDEX "reservas_email_cliente_idx" ON "reservas"("email_cliente");
-
--- CreateIndex
-CREATE INDEX "reservas_lugar_id_idx" ON "reservas"("lugar_id");
-
--- CreateIndex
-CREATE INDEX "telemetry_aggregations_espacio_id_window_start_idx" ON "telemetry_aggregations"("espacio_id", "window_start");
-
--- CreateIndex
-CREATE UNIQUE INDEX "telemetry_aggregations_espacio_id_window_start_key" ON "telemetry_aggregations"("espacio_id", "window_start");
+CREATE UNIQUE INDEX "telemetry_aggregations_space_id_window_start_key" ON "telemetry_aggregations"("space_id", "window_start");
 
 -- AddForeignKey
-ALTER TABLE "alerts" ADD CONSTRAINT "alerts_espacio_id_fkey" FOREIGN KEY ("espacio_id") REFERENCES "espacios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "spaces" ADD CONSTRAINT "spaces_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "device_desired" ADD CONSTRAINT "device_desired_espacio_id_fkey" FOREIGN KEY ("espacio_id") REFERENCES "espacios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "bookings" ADD CONSTRAINT "bookings_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "device_reported" ADD CONSTRAINT "device_reported_espacio_id_fkey" FOREIGN KEY ("espacio_id") REFERENCES "espacios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "bookings" ADD CONSTRAINT "bookings_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "locations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "espacios" ADD CONSTRAINT "espacios_lugar_id_fkey" FOREIGN KEY ("lugar_id") REFERENCES "lugares"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "alerts" ADD CONSTRAINT "alerts_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "office_hours" ADD CONSTRAINT "office_hours_espacio_id_fkey" FOREIGN KEY ("espacio_id") REFERENCES "espacios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "office_hours" ADD CONSTRAINT "office_hours_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reservas" ADD CONSTRAINT "reservas_espacio_id_fkey" FOREIGN KEY ("espacio_id") REFERENCES "espacios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "device_desired" ADD CONSTRAINT "device_desired_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reservas" ADD CONSTRAINT "reservas_lugar_id_fkey" FOREIGN KEY ("lugar_id") REFERENCES "lugares"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "device_reported" ADD CONSTRAINT "device_reported_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "telemetry_aggregations" ADD CONSTRAINT "telemetry_aggregations_espacio_id_fkey" FOREIGN KEY ("espacio_id") REFERENCES "espacios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "telemetry_aggregations" ADD CONSTRAINT "telemetry_aggregations_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

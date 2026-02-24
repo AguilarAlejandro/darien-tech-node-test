@@ -121,41 +121,41 @@ x-api-key: admin-secret-key-123
 
 La documentación completa está disponible en **Swagger UI**: `http://localhost:3000/docs`
 
-### Lugares (`/api/v1/lugares`)
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/v1/lugares` | Listar todos los lugares |
-| GET | `/api/v1/lugares/:id` | Obtener un lugar por ID |
-| POST | `/api/v1/lugares` | Crear lugar *(ADMIN)* |
-| PATCH | `/api/v1/lugares/:id` | Actualizar lugar *(ADMIN)* |
-| DELETE | `/api/v1/lugares/:id` | Eliminar lugar *(ADMIN)* |
+### Locations (`/api/v1/locations`)
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/v1/locations` | List all locations |
+| GET | `/api/v1/locations/:id` | Get location by ID |
+| POST | `/api/v1/locations` | Create location *(ADMIN)* |
+| PATCH | `/api/v1/locations/:id` | Update location *(ADMIN)* |
+| DELETE | `/api/v1/locations/:id` | Delete location *(ADMIN)* |
 
-### Espacios (`/api/v1/espacios`)
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/v1/espacios` | Listar espacios (filtros: `lugarId`, `tipo`, `activo`) |
-| GET | `/api/v1/espacios/:id` | Obtener espacio por ID |
-| POST | `/api/v1/espacios` | Crear espacio *(ADMIN)* |
-| PATCH | `/api/v1/espacios/:id` | Actualizar espacio *(ADMIN)* |
-| DELETE | `/api/v1/espacios/:id` | Eliminar espacio *(ADMIN)* |
+### Spaces (`/api/v1/spaces`)
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/v1/spaces` | List spaces (filter: `locationId`) |
+| GET | `/api/v1/spaces/:id` | Get space by ID |
+| POST | `/api/v1/spaces` | Create space *(ADMIN)* |
+| PATCH | `/api/v1/spaces/:id` | Update space *(ADMIN)* |
+| DELETE | `/api/v1/spaces/:id` | Delete space *(ADMIN)* |
 
-### Reservas (`/api/v1/reservas`)
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/v1/reservas` | Listar reservas con paginación (`page`, `pageSize`) |
-| GET | `/api/v1/reservas/:id` | Obtener reserva por ID |
-| POST | `/api/v1/reservas` | Crear reserva |
-| PATCH | `/api/v1/reservas/:id` | Actualizar reserva *(ADMIN)* |
-| DELETE | `/api/v1/reservas/:id` | Eliminar reserva |
+### Bookings (`/api/v1/bookings`)
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/v1/bookings` | List bookings with pagination (`page`, `pageSize`) |
+| GET | `/api/v1/bookings/:id` | Get booking by ID |
+| POST | `/api/v1/bookings` | Create booking |
+| PATCH | `/api/v1/bookings/:id` | Update booking *(ADMIN)* |
+| DELETE | `/api/v1/bookings/:id` | Delete booking |
 
 ### IoT (`/api/v1/iot`)
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/v1/iot/espacios/:id/twin` | Obtener digital twin del espacio |
-| PATCH | `/api/v1/iot/espacios/:id/desired` | Actualizar configuración deseada *(ADMIN)* |
-| GET | `/api/v1/iot/espacios/:id/telemetry` | Historial de telemetría |
-| GET | `/api/v1/iot/espacios/:id/alerts` | Alertas del espacio |
-| GET | `/api/v1/iot/stream` | Stream SSE en tiempo real |
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/v1/iot/spaces/:id/twin` | Get digital twin for a space |
+| PATCH | `/api/v1/iot/spaces/:id/desired` | Update desired config *(ADMIN)* |
+| GET | `/api/v1/iot/spaces/:id/telemetry` | Telemetry history |
+| GET | `/api/v1/iot/spaces/:id/alerts` | Alerts for a space |
+| GET | `/api/v1/iot/stream` | Real-time SSE stream |
 
 ---
 
@@ -213,7 +213,7 @@ src/
 ├── config.ts          # Variables de entorno
 ├── auth/              # Hooks de autenticación (API key, rol admin)
 ├── database/          # Singleton de Prisma
-├── routes/            # Handlers HTTP (lugares, espacios, reservas, iot)
+├── routes/            # HTTP handlers (locations, spaces, bookings, iot)
 ├── schemas/           # Esquemas Zod para validación y tipos
 ├── services/          # Lógica de negocio
 │   └── iot/           # MQTT, digital twin, telemetría, alertas

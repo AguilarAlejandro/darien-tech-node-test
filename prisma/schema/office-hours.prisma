@@ -1,8 +1,8 @@
 model OfficeHours {
   id        String   @id @default(uuid())
   spaceId   String   @unique @map("space_id")
-  openTime  String   // "HH:mm" format, e.g. "09:00"
-  closeTime String   // "HH:mm" format, e.g. "18:00"
+  openTime  String   @map("open_time") // "HH:mm" format, e.g. "09:00"
+  closeTime String   @map("close_time") // "HH:mm" format, e.g. "18:00"
   timezone  String   @default("America/Mexico_City")
   workDays  Int[]    @map("work_days") // 1=Mon, 2=Tue...7=Sun
   createdAt DateTime @default(now()) @map("created_at")
