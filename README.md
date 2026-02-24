@@ -83,7 +83,7 @@ Asegúrate de tener PostgreSQL corriendo y configura `DATABASE_URL` en tu `.env`
 # Aplicar migraciones y generar el cliente Prisma
 npm run prisma:migrate
 
-# Cargar datos de ejemplo (lugares, espacios y API keys de prueba)
+# Cargar datos de ejemplo (lugares, espacios, reservas, alertas, telemetría y API keys de prueba)
 npm run prisma:seed
 ```
 
@@ -142,7 +142,7 @@ La documentación completa está disponible en **Swagger UI**: `http://localhost
 ### Bookings (`/api/v1/bookings`)
 | Method | Route | Description |
 |--------|-------|-------------|
-| GET | `/api/v1/bookings` | List bookings with pagination (`page`, `pageSize`) |
+| GET | `/api/v1/bookings` | Listar reservas con paginación (`page`, `pageSize`, `clientEmail` parcial, `spaceId`, `dateFrom`, `dateTo`) |
 | GET | `/api/v1/bookings/:id` | Get booking by ID |
 | POST | `/api/v1/bookings` | Create booking |
 | PATCH | `/api/v1/bookings/:id` | Update booking *(ADMIN)* |
@@ -155,7 +155,7 @@ La documentación completa está disponible en **Swagger UI**: `http://localhost
 | PATCH | `/api/v1/iot/spaces/:id/desired` | Update desired config *(ADMIN)* |
 | GET | `/api/v1/iot/spaces/:id/telemetry` | Telemetry history |
 | GET | `/api/v1/iot/spaces/:id/alerts` | Alerts for a space |
-| GET | `/api/v1/iot/stream` | Real-time SSE stream |
+| GET | `/api/v1/iot/stream?key=\<api-key\>` | Stream SSE en tiempo real (autenticación por query param) |
 
 ---
 
@@ -186,21 +186,66 @@ npm run test:coverage
 
 ---
 
-## Módulo IoT (Bonus)
+## Módulo IoT
 
 El sistema incluye un consumidor MQTT que se conecta al broker configurado en `MQTT_URL` y se suscribe a los tópicos:
 
-- `sites/+/offices/+/telemetry` — telemetría en tiempo real
-- `sites/+/offices/+/reported` — estado reportado del dispositivo
+- `sites/{locationId}/offices/{spaceId}/telemetry` — telemetría en tiempo real
+- `sites/{locationId}/offices/{spaceId}/reported` — estado reportado del dispositivo
 
-**Funcionalidades implementadas:**
-- Ingestión y agregación de telemetría por minuto (temperatura, CO₂, humedad, ocupación, batería)
+**Funcionalidades:**
+- Ingestión y agregación de telemetría por minuto (temperatura, CO₂, humedad, ocupación, potencia)
 - Digital twin (estado `desired` / `reported`) con publicación de vuelta al broker
-- Motor de alertas: CO₂ elevado, ocupación máxima y ocupación fuera de horario
-- Marcado de telemetría fuera de horario de oficina
-- Stream SSE (`/api/v1/iot/stream`) para actualizaciones en tiempo real al frontend
+- Motor de alertas con ventanas de tiempo:
+  - `CO2`: se abre si CO₂ > umbral durante 5 minutos, se cierra tras 2 minutos normal
+  - `OCCUPANCY_MAX`: se abre si ocupación ≥ 100% durante 2 minutos
+  - `OCCUPANCY_UNEXPECTED`: se abre si hay ocupación fuera de horario durante 10 minutos
+- Stream SSE (`GET /api/v1/iot/stream?key=<api-key>`) para actualizaciones en tiempo real al frontend
 
-Para correr el simulador IoT, consulta el repositorio [`iot-simulator`](https://github.com/.../iot-simulator) y su guía de uso.
+### Configurar y correr el simulador IoT
+
+El simulador requiere un broker MQTT (Mosquitto). El repositorio `iot-simulator` incluye un `docker.compose.yml` para levantarlo:
+
+```bash
+cd ../iot-simulator   # o la ruta donde esté el simulador
+docker compose -f docker.compose.yml up -d
+```
+
+Luego lanza el simulador apuntando a un espacio concreto. Los argumentos son:
+- `--site-id`: el UUID de la **location** (sede)
+- `--office-id`: el UUID del **space** (espacio)
+
+Estos deben coincidir con IDs existentes en la base de datos. Con los datos del seed:
+
+```bash
+# Sala Azul — Torre de Innovación Norte
+node index.js --site-id 11111111-1111-1111-1111-111111111111 --office-id aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+
+# Área Colaborativa Verde — Torre de Innovación Norte
+node index.js --site-id 11111111-1111-1111-1111-111111111111 --office-id bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+
+# Cabina Creativa A — Hub Creativo Sur
+node index.js --site-id 22222222-2222-2222-2222-222222222222 --office-id cccccccc-cccc-cccc-cccc-cccccccccccc
+
+# Sala Principal — Hub Creativo Sur
+node index.js --site-id 22222222-2222-2222-2222-222222222222 --office-id dddddddd-dddd-dddd-dddd-dddddddddddd
+```
+
+Cada proceso publica una lectura cada 10 segundos (configurable con `INTERVAL_SEC` en el `.env` del simulador). Cada lectura incluye temperatura, humedad, CO₂, ocupación y potencia con jitter aleatorio alrededor de los valores base.
+
+**Variables de entorno del simulador** (archivo `.env` en la carpeta `iot-simulator`):
+
+```env
+MQTT_URL=mqtt://localhost:1883
+BASE_TEMP_C=23
+BASE_HUMIDITY_PCT=48
+BASE_CO2_PPM=800      # Subir a 1100 para forzar alertas de CO₂
+BASE_OCCUPANCY=3
+BASE_POWER_W=120
+INTERVAL_SEC=10
+```
+
+> Para forzar una alerta de CO₂, setea `BASE_CO2_PPM=1100` y espera ~5 minutos.
 
 ---
 
