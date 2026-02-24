@@ -23,14 +23,14 @@ describe('GET /health', () => {
 
 describe('Auth middleware', () => {
   it('returns 401 when x-api-key header is missing', async () => {
-    const res = await app.inject({ method: 'GET', url: '/api/v1/lugares' })
+    const res = await app.inject({ method: 'GET', url: '/api/v1/locations' })
     expect(res.statusCode).toBe(401)
   })
 
   it('returns 401 for invalid api key', async () => {
     const res = await app.inject({
       method: 'GET',
-      url: '/api/v1/lugares',
+      url: '/api/v1/locations',
       headers: { 'x-api-key': 'invalid-bad-key' },
     })
     expect(res.statusCode).toBe(401)
@@ -39,7 +39,7 @@ describe('Auth middleware', () => {
   it('returns 200 for valid user api key', async () => {
     const res = await app.inject({
       method: 'GET',
-      url: '/api/v1/lugares',
+      url: '/api/v1/locations',
       headers: { 'x-api-key': 'user-secret-key-456' },
     })
     expect(res.statusCode).toBe(200)

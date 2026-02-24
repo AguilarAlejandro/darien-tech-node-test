@@ -117,3 +117,60 @@ describe('Bookings CRUD & Business Rules', () => {
     expect(res.statusCode).toBe(404)
   })
 })
+
+describe('Bookings — Weekly limit (max 3 per client per week)', () => {
+  const weeklyIds: string[] = []
+  // Use a far-future week that won't conflict with seed data
+  const weekDate = '2027-03-01' // Monday of ISO week 9, 2027
+  const email = 'weekly-limit-test@example.com'
+
+  afterAll(async () => {
+    for (const id of weeklyIds) {
+      await app.inject({
+        method: 'DELETE',
+        url: `/api/v1/bookings/${id}`,
+        headers: { 'x-api-key': ADMIN_KEY },
+      })
+    }
+  })
+
+  it('allows creating 3 bookings in the same week', async () => {
+    for (let i = 0; i < 3; i++) {
+      const day = String(i + 1).padStart(2, '0')
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/bookings',
+        headers: { 'x-api-key': USER_KEY, 'Content-Type': 'application/json' },
+        payload: {
+          spaceId: SPACE_ID,
+          clientEmail: email,
+          bookingDate: `2027-03-${day}T00:00:00.000Z`,
+          startTime: `2027-03-${day}T09:00:00.000Z`,
+          endTime: `2027-03-${day}T10:00:00.000Z`,
+        },
+      })
+      expect(res.statusCode).toBe(201)
+      const body = JSON.parse(res.body)
+      weeklyIds.push(body.id)
+    }
+    expect(weeklyIds).toHaveLength(3)
+  })
+
+  it('rejects the 4th booking in the same week with 400', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/bookings',
+      headers: { 'x-api-key': USER_KEY, 'Content-Type': 'application/json' },
+      payload: {
+        spaceId: SPACE_ID,
+        clientEmail: email,
+        bookingDate: '2027-03-04T00:00:00.000Z',
+        startTime: '2027-03-04T11:00:00.000Z',
+        endTime: '2027-03-04T12:00:00.000Z',
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    const body = JSON.parse(res.body)
+    expect(body.message).toContain('Weekly booking limit')
+  })
+})

@@ -119,8 +119,6 @@ x-api-key: admin-secret-key-123
 
 ## Endpoints principales
 
-La documentación completa está disponible en **Swagger UI**: `http://localhost:3000/docs`
-
 ### Locations (`/api/v1/locations`)
 | Method | Route | Description |
 |--------|-------|-------------|
